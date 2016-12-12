@@ -57,3 +57,7 @@ sudo tshark -i em1 -n -o nfs.file_name_snooping:TRUE \
 -o nfs.file_full_name_snooping:TRUE -o nfs.fhandle_find_both_reqrep:TRUE \
 -f "port 2049"
 
+--------------------------------------
+
+tshark -r tcp_retransmissions.pcap -n -e expert.message -e expert.group -T fields
+tshark -z expert -r tcp_retransmissions.pcap  -n -q -o eth.check_fcs:FALSE

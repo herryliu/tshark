@@ -13,7 +13,7 @@ class TSMainMenu(cmd.Cmd):
         self.conf =  {'prompt'  : prompt,
                       'file'    : '/home/admin/git/pcapfile/tcp_ports.pcap',
                       'statCmd' : 'tshark -z conv,tcp -q -n ',
-                      'newfile' : True,
+                      'fileloaded' : False,
                       'filter'  : {},
                       }
 
@@ -47,7 +47,7 @@ class TSMainMenu(cmd.Cmd):
             else:
                 self.conf[field] = os.path.expanduser(value)
                 # mark the file as new file
-                self.conf['newfile'] = True
+                self.conf['fileloaded'] = False
                 return
 
         # set packet filter
@@ -89,7 +89,7 @@ class TSMainMenu(cmd.Cmd):
         return
 
     def show_conn(self, args):
-        if self.conf['newfile']:
+        if not self.conf['fileloaded']:
             print "Need to load the file before show the connection"
             return
 
@@ -110,7 +110,7 @@ class TSMainMenu(cmd.Cmd):
         return
 
     def do_load(self, args):
-        if not self.conf['newfile']:
+        if self.conf['fileloaded']:
             print "Not a new file. Statistics is ready!"
             return
         self.connList = []
@@ -142,7 +142,7 @@ class TSMainMenu(cmd.Cmd):
                             src.group(2), dst.group(1), dst.group(2) ] ]
                     connection_id += 1
         # mark the file as old file
-        self.conf['newfile'] = False
+        self.conf['fileloaded'] = True
         return
 
     def do_apply(self, args):
@@ -184,7 +184,7 @@ class TSMainMenu(cmd.Cmd):
                             src.group(2), dst.group(1), dst.group(2) ] ]
                     connection_id += 1
         # mark the file as old file
-        self.conf['newfile'] = False
+        self.conf['fileloaded'] = True
         return
 
 
@@ -208,4 +208,27 @@ if __name__ == "__main__":
 a* --> any number of a (>= 0)
 a+ --> at least one a (>= 1)
 a? --> no more than one 1 (<= 1)
+'''
+'''
+tshark -z option detail
+
+- list the conversations
+    -z conv,type[,filter]
+    tshark -r tcp_ports.pcap -n -q -z conv,tcp
+    
+- expert analysis
+    -z expert,[error,warm,note,chat],[filter]
+    the servity servity level order is error>warm>note>chat ( note = error + warm + note )
+    tshark -r tcp_ports.pcap -n -q -z expert,chat,'tcpport == 2828'
+
+- flow analysis
+    -z follow,[tcp,udp],[ascii,hex],[filter]
+    if the pcap file contains multiple session, filter must be applied to get right pair of conversation
+    the filter format can be "ip:port,ip:port" [ it will be translated into correct filter statement.
+    stream index (index number eg. 1, 2, 3) can be used as filter as well
+    tshark -r tcp_ports.pcap -n -q -z follow,tcp,hex,172.16.16.128:2828,67.228.110.120:80
+
+tshark -r tcp_ports.pcap -n -q -z io,stat,0.1
+tshark -r tcp_ports.pcap -n -q -z io,phs
+-z io,stat,interval,"[COUNT|SUM|MIN|MAX|AVG|LOAD](field)filter"
 '''
